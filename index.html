@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- AFRAME + MindAR -->
+  <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    body, html { margin:0; padding:0; overflow:hidden; background:black; }
+  </style>
+</head>
+<body>
+
+  <!-- Bienvenida -->
+  <div id="welcome"
+       class="fixed inset-0 z-50 bg-black text-white flex flex-col items-center justify-center text-center p-6">
+      <h1 class="text-2xl font-bold mb-4">Toca para iniciar la realidad aumentada</h1>
+      <button id="startButton"
+              class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-xl text-lg shadow-lg">
+        Iniciar AR
+      </button>
+  </div>
+
+  <!-- Escena AR -->
+  <a-scene
+    id="arScene"
+    mindar-image="imageTargetSrc: targets.mind;"
+    vr-mode-ui="enabled: false"
+    embedded
+  >
+
+    <a-assets>
+      <video id="video-asset"
+             src="https://landing.click/vr/video_prueba.mp4"
+             playsinline
+             webkit-playsinline
+             preload="none"
+             muted
+             loop>
+      </video>
+    </a-assets>
+
+    <!-- Target -->
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-plane
+        src="#video-asset"
+        width="1.7778"
+        height="1"
+        position="0 0 0">
+      </a-plane>
+    </a-entity>
+
+    <a-camera></a-camera>
+  </a-scene>
+
+  <script>
+    const welcome = document.querySelector("#welcome");
+    const startButton = document.querySelector("#startButton");
+    const scene = document.querySelector("#arScene");
+    const video = document.querySelector("#video-asset");
+
+    // Esperamos a que la escena termine de cargar
+    scene.addEventListener("loaded", () => {
+
+      startButton.addEventListener("click", async () => {
+        welcome.style.display = "none";
+
+        // Arrancar MindAR correctamente
+        const mindarSystem = scene.systems["mindar-image"];
+        await mindarSystem.start();  // Aquí debe PEDIR cámara
+
+      });
+
+      // EVENTOS DE TARGET
+      scene.addEventListener("targetFound", () => {
+        video.muted = false;
+        video.play();
+      });
+
+      scene.addEventListener("targetLost", () => {
+        video.pause();
+      });
+
+    });
+  </script>
+
+</body>
+</html>
